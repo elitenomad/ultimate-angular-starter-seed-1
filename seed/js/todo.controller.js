@@ -4,23 +4,23 @@
   var app = angular.module('app');
 
 
-  var TodoController = function(){
+  function TodoController(TodoService){
     var self = this;
 
     self.newTodo = '';
+    self.list = [];
 
-    self.amount = 209.80 ;
+    function getTodos() {
+      TodoService
+        .fetch()
+        .then(function (response) {
+          self.list = response;
+        });
+    }
 
-    self.list = [{
-      title: 'First TODO item',
-      completed: false
-    },{
-      title: 'Second TODO item',
-      completed: false
-    },{
-      title: 'Third TODO Item',
-      completed: false
-    }];
+    getTodos();
+
+
 
     self.addTodo = function(){
       self.list.unshift({
@@ -61,7 +61,7 @@
       another) Inject $scope in the initialization part
       e.g app.controller('MainController',['$scope', MainController])
    */
-  TodoController.$inject = ['$scope'];
+  TodoController.$inject = ['$scope', 'TodoService'];
 
   app.controller('TodoController', TodoController)
 })();
