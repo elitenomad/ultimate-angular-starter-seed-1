@@ -5,63 +5,66 @@
 
 
   function TodoController(TodoService){
-    var self = this;
+    var ctrl = this;
 
-    self.newTodo = '';
-    self.list = [];
+    ctrl.newTodo = '';
+    ctrl.list = [];
 
     function getTodos() {
       TodoService
         .fetch()
         .then(function (response) {
-          self.list = response;
+          ctrl.list = response;
         });
     }
 
     getTodos();
 
-
-
-    self.addTodo = function(){
-      self.list.unshift({
-        title: self.newTodo,
-        completed: false
-      });
-
-      /*
-        Clear the input text after you add it to the list
-       */
-
-      self.clearNewTodoAfterSubmit();
+    ctrl.addTodo = function () {
+      if (!ctrl.newTodo) {
+        return;
+      }
+      TodoService
+        .create({
+          title: ctrl.newTodo,
+          completed: false
+        })
+        .then(function (response) {
+          ctrl.list.unshift(response);
+          ctrl.newTodo = '';
+        });
     };
-
-    self.removeTodo = function(index){
-      self.list.splice(index, 1);
+    ctrl.removeTodo = function (item, index) {
+      TodoService
+        .remove(item)
+        .then(function (response) {
+          ctrl.list.splice(index, 1);
+        });
     };
-
-    self.updateTodo = function(item, index){
-      self.list[index].title = item.title;
+    ctrl.updateTodo = function (item, index) {
+      if (!item.title) {
+        ctrl.removeTodo(item, index);
+        return;
+      }
+      TodoService
+        .update(item);
     };
-
-    self.clearNewTodoAfterSubmit = function(){
-      self.newTodo = '';
-    };
-
-    self.getRemaining = function(){
-      return self.list.filter(function(item){
+    ctrl.getRemaining = function () {
+      return ctrl.list.filter(function (item) {
         return !item.completed;
       });
     };
+    ctrl.toggleState = function (item) {
+      TodoService
+        .update(item)
+        .then(function () {
+
+        }, function () {
+          item.completed = !item.completed;
+        });
+    };
 
   };
-
-  /*
-    Inject dependencies
-    Multiple ways of injecting dependencies
-      another) Inject $scope in the initialization part
-      e.g app.controller('MainController',['$scope', MainController])
-   */
-  TodoController.$inject = ['$scope', 'TodoService'];
 
   app.controller('TodoController', TodoController)
 })();
